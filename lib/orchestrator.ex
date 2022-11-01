@@ -7,6 +7,12 @@ defmodule Orchestrator do
   station_3,station_4,avg_time_b
   """
 
+  def print_run(file_path) do
+    file_path
+    |> run()
+    |> IO.inspect()
+  end
+
   def run(file_path) do
     File.read!(file_path)
     |> String.trim()
@@ -17,5 +23,7 @@ defmodule Orchestrator do
     |> elem(1)
     |> Enum.uniq()
     |> Enum.join("\n")
+  rescue
+    error -> "There was an issue #{error.message}"
   end
 end

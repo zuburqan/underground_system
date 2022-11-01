@@ -39,4 +39,14 @@ defmodule UndergroundSystemTest do
                    UndergroundSystem.process(rows)
                  end
   end
+
+  test "raises when empty row passed" do
+    rows = [{""}]
+
+    assert_raise BadRowError,
+                 "Bad empty row encountered",
+                 fn ->
+                   UndergroundSystem.process(rows)
+                 end
+  end
 end

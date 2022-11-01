@@ -35,6 +35,9 @@ defmodule UndergroundSystem do
         {"get_average", start_station, end_station} ->
           {journeys, get_average_time(acc, start_station, end_station)}
 
+        {""} ->
+          raise BadRowError, message: "Bad empty row encountered"
+
         bad_row ->
           raise BadRowError, message: "Bad row #{inspect(bad_row)} encountered"
       end
