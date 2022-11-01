@@ -34,6 +34,9 @@ defmodule UndergroundSystem do
 
         {"get_average", start_station, end_station} ->
           {journeys, get_average_time(acc, start_station, end_station)}
+
+        bad_row ->
+          raise BadRowError, message: "Bad row #{inspect(bad_row)} encountered"
       end
     end)
   end
@@ -76,7 +79,12 @@ defmodule UndergroundSystem do
   defp extract(list, id) do
     Map.get(list, id, [])
     |> Enum.map(&elem(&1, 1))
-    |> Enum.map(&(Integer.parse(&1) |> elem(0)))
+    |> Enum.map(fn time ->
+      case Integer.parse(time) do
+        {time, _discard} -> time
+        :error -> raise BadRowError, message: "Bad row with time #{time} encountered"
+      end
+    end)
     |> List.last()
   end
 
