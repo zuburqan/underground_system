@@ -10,6 +10,7 @@ defmodule OrchestratorTest do
   test "reads file 2 and generates answer" do
     file_path = "test_2.txt"
 
-    assert Orchestrator.run(file_path) == "Paradise,Cambridge,14.0\nLeyton,Waterloo,11.0\nLeyton,Waterloo,12"
+    assert Orchestrator.run(file_path) ==
+             "Paradise,Cambridge,14.0\nLeyton,Waterloo,11.0\nLeyton,Waterloo,12.0"
   end
 end

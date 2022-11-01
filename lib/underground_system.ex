@@ -1,58 +1,71 @@
 defmodule UndergroundSystem do
+  @moduledoc """
+  Processes the rows to shape data for easy computation and returns journey map
+  and the averages whenever they are requested in chronological order.
+
+  Example input:
+  [
+    {"check_in", "45", "Leyton", "3"},
+    {"check_out", "45", "Waterloo", "15"},
+    {"get_average", "Leyton", "Waterloo"}
+  ]
+
+  Example output:
+  {
+    %{
+    "Leyton" => [{"45", "3"}],
+    "Waterloo" => [{"45", "15"}]
+     }, 
+    ["Leyton,Waterloo,12.0"]
+  }
+  """
+
   def process(rows) do
     rows
-    |> Enum.reduce({%{}, %{}, []}, fn row, acc ->
-      {check_ins, check_outs, result} = acc
+    |> Enum.reduce({%{}, []}, fn row, acc ->
+      {journeys, result} = acc
 
       case row do
         {"check_in", id, station, time} ->
-          {check_in(check_ins, id, station, time), check_outs, result}
+          {travel(journeys, id, station, time), result}
 
         {"check_out", id, station, time} ->
-          {check_ins, check_out(check_outs, id, station, time), result}
+          {travel(journeys, id, station, time), result}
 
         {"get_average", start_station, end_station} ->
-          {check_ins, check_outs, get_average_time(acc, start_station, end_station)}
+          {journeys, get_average_time(acc, start_station, end_station)}
       end
     end)
   end
 
-  def check_in(check_ins, id, station, time) do
-    past_check_ins = Map.get(check_ins, station, [])
+  defp travel(journeys, id, station, time) do
+    past_check_ins = Map.get(journeys, station, [])
 
-    check_ins
+    journeys
     |> Map.put(station, past_check_ins ++ [{id, time}])
   end
 
-  def check_out(check_outs, id, station, time) do
-    past_check_outs = Map.get(check_outs, station, [])
+  defp get_average_time(journeys, start_station, end_station) do
+    {trips, result} = journeys
 
-    check_outs
-    |> Map.put(station, past_check_outs ++ [{id, time}])
-  end
-
-  def get_average_time(journeys, start_station, end_station) do
-    {check_ins, check_outs, result} = journeys
-
-    entries = entry_exit(check_ins, start_station)
-    exits = entry_exit(check_outs, end_station)
+    entries = entry_exit(trips, start_station)
+    exits = entry_exit(trips, end_station)
 
     timings =
       Map.keys(entries)
       |> Enum.map(&{extract(entries, &1), extract(exits, &1)})
+      |> Enum.reject(&(is_nil(elem(&1, 0)) || is_nil(elem(&1, 1))))
 
     sum =
       timings
-      |> IO.inspect()
-      |> Enum.map(fn timing -> 
+      |> Enum.map(fn timing ->
         {start, ending} = timing
+
         if ending > start do
-          (ending - start)
-        else
-          start
+          ending - start
         end
       end)
-      |> IO.inspect(label: AFTER)
+      |> Enum.reject(&is_nil(&1))
       |> Enum.sum()
 
     average = sum / (length(timings) * 1.0)
@@ -61,14 +74,10 @@ defmodule UndergroundSystem do
   end
 
   defp extract(list, id) do
-    time = 
     Map.get(list, id, [])
     |> Enum.map(&elem(&1, 1))
     |> Enum.map(&(Integer.parse(&1) |> elem(0)))
-    # check this logic
     |> List.last()
-
-    time || 0
   end
 
   defp entry_exit(journeys, station) do
