@@ -45,10 +45,10 @@ defmodule UndergroundSystem do
   end
 
   defp travel(journeys, id, station, time) do
-    past_check_ins = Map.get(journeys, station, [])
+    trip_timings = Map.get(journeys, station, [])
 
     journeys
-    |> Map.put(station, past_check_ins ++ [{id, time}])
+    |> Map.put(station, trip_timings ++ [{id, time}])
   end
 
   defp get_average_time(journeys, start_station, end_station) do
